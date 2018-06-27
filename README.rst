@@ -15,8 +15,8 @@ in the config file defined as attributes.
 Which amounts to::
 
     {
-        "value": "somevalue",
-        "overridden": true,
+        "sitename": "Bank of amurika",
+        "production": true,
         "structure": {
             "width": [1,3,7],
             "flapdrol": false
@@ -27,8 +27,8 @@ will become something in python that looks like this::
 
 
     class Config(object):
-        value = "somevalue"
-        overridden = True
+        sitename = "Great value"
+        production = True
         structure = {"width": [1, 3, 7], "flapdrol": False}
 
 That is nice to have! Because now you can load your configuration where you
@@ -56,12 +56,15 @@ The file should look like this::
     @configfile
     class MyPersonalConfigClass(object):
         # defaults
-        overridden = False
+        sitename = "Default sitename"
+        production = False
 
     settings = MyPersonalConfigClass()
 
 So just create a type with some default values as attributes and slap a
-decorator on top.
+decorator on top. These defaults will be used if the values are not defined in
+your json config. That way you can be sure the values are defined and avoid
+adding checks in your code.
 
 Search path an json filename
 ----------------------------

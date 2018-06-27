@@ -7,7 +7,6 @@ setup_search_paths()
 
 @configfile
 class MyPersonalConfigClass(object):
-    path = os.path.join(os.path.dirname(__file__), 'config.json')
     # defaults
     overridden = False
 

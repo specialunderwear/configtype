@@ -1,6 +1,9 @@
+import sys
 import unittest
 import os.path
-from configtype.jsonconfig import configfile
+from configtype.jsonconfig import configfile, setup_search_paths
+
+setup_search_paths()
 
 @configfile
 class MyPersonalConfigClass(object):

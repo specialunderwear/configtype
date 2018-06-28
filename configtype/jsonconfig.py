@@ -4,6 +4,7 @@ import json
 import importlib
 import copy
 import logging
+import warnings
 from os.path import join, exists, realpath
 
 from six import add_metaclass
@@ -40,6 +41,7 @@ class JsonFinder(object):
 
         package_parts = module.split('.')
 
+        paths_tried = []
         for search_path in self.search_paths:
             while package_parts:
                 filename = "%s.json" % join(
@@ -50,8 +52,13 @@ class JsonFinder(object):
 
                 if exists(filename):
                     return JsonLoader(path, filename)
-
+                else:
+                    paths_tried.append(filename)
                 package_parts.pop()
+
+        warnings.warn("no json file found for module %s, paths tried: %s" % (
+            fullname, paths_tried
+        ))
 
         return None
 
@@ -98,13 +105,11 @@ class JsonConfigType(type):
                     attrs[k] = copy.deepcopy(value)
 
         except ImportError as e:
-            if attrs.get('ignore_missing_config', False):
-                logger.info(
-                    "Config file not found, but ignoring because class"
-                    " is configured with `ignore_missing_config`"
-                )
+            configured = any(filter(lambda x: isinstance(x, JsonFinder), sys.meta_path))
+            if not configured:
+                raise ConfigurationError(str(e))
             else:
-                raise ConfigurationError(e)
+                logger.exception(e)
 
         return type.__new__(cls, name, bases, attrs)
 

@@ -39,10 +39,9 @@ class JsonFinder(object):
         if extension != 'json':
             return None
 
-        package_parts = module.split('.')
-
         paths_tried = []
         for search_path in self.search_paths:
+            package_parts = module.split('.')
             while package_parts:
                 filename = "%s.json" % join(
                     realpath(search_path),

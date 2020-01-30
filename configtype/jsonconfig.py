@@ -100,7 +100,6 @@ class JsonConfigType(type):
             class_module = attrs["__module__"]
             parent_module, _ = class_module.rsplit(".", 1)
             config_module_name = "%s.json" % parent_module
-            print(config_module_name)
             config_module = importlib.import_module(config_module_name)
 
             # update attrs with values from config module

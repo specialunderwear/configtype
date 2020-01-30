@@ -27,26 +27,32 @@ def setup_search_paths(*paths):
 
 
 class JsonFinder(object):
-    def __init__(self, search_paths=('.')):
+    def __init__(self, search_paths=(".")):
         self.search_paths = search_paths
+
+    def find_spec(self, fullname, path=None, target=None):
+        module_loader = self.find_module(fullname, path)
+        if module_loader is not None:
+            return importlib.util.spec_from_file_location(
+                fullname, module_loader.filename, loader=module_loader
+            )
+
+        return None
 
     def find_module(self, fullname, path=None):
         try:
-            module, extension = fullname.rsplit('.', 1)
+            module, extension = fullname.rsplit(".", 1)
         except ValueError:
             return None
 
-        if extension != 'json':
+        if extension != "json":
             return None
 
         paths_tried = []
         for search_path in self.search_paths:
-            package_parts = module.split('.')
+            package_parts = module.split(".")
             while package_parts:
-                filename = "%s.json" % join(
-                    realpath(search_path),
-                    *package_parts
-                )
+                filename = "%s.json" % join(realpath(search_path), *package_parts)
                 logger.debug("Looking for json config at %s", filename)
 
                 if exists(filename):
@@ -55,9 +61,10 @@ class JsonFinder(object):
                     paths_tried.append(filename)
                 package_parts.pop()
 
-        warnings.warn("no json file found for module %s, paths tried: %s" % (
-            fullname, paths_tried
-        ))
+        warnings.warn(
+            "no json file found for module %s, paths tried: %s"
+            % (fullname, paths_tried)
+        )
 
         return None
 
@@ -73,14 +80,12 @@ class JsonLoader(object):
         else:
             mod = sys.modules.setdefault(fullname, imp.new_module(fullname))
 
-        logger.info("config module %s loaded from %s" % (
-            fullname, self.filename
-        ))
+        logger.info("config module %s loaded from %s" % (fullname, self.filename))
         # Set a few properties required by PEP 302
         mod.__file__ = self.filename
         mod.__name__ = fullname
         mod.__loader__ = self
-        mod.__package__, _ = fullname.rsplit('.', 1)
+        mod.__package__, _ = fullname.rsplit(".", 1)
 
         with open(self.filename) as jsonfile:
             json_data = json.load(jsonfile)
@@ -92,14 +97,15 @@ class JsonLoader(object):
 class JsonConfigType(type):
     def __new__(cls, name, bases, attrs):
         try:
-            class_module = attrs['__module__']
-            parent_module, _ = class_module.rsplit('.', 1)
+            class_module = attrs["__module__"]
+            parent_module, _ = class_module.rsplit(".", 1)
             config_module_name = "%s.json" % parent_module
+            print(config_module_name)
             config_module = importlib.import_module(config_module_name)
 
             # update attrs with values from config module
             for k in dir(config_module):
-                if not k.startswith('__'):
+                if not k.startswith("__"):
                     value = getattr(config_module, k)
                     attrs[k] = copy.deepcopy(value)
 

@@ -44,3 +44,12 @@ class JsonTest(unittest.TestCase):
             'flapdrol': False,
             'width': [1, 3, 7]
         })
+
+    def test_json_module_can_be_imported_directly(self):
+        import configtype.json
+
+        self.assertEqual(configtype.json.value, "somevalue")
+        self.assertDictEqual(configtype.json.structure, {
+            'flapdrol': False,
+            'width': [1, 3, 7]
+        })

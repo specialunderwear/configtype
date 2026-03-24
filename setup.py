@@ -27,7 +27,6 @@ setup(
     # specify dependencies
     install_requires=[
         'setuptools',
-        'six',
     ],
     # mark test target to require extras.
     extras_require = {

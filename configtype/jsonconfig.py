@@ -1,13 +1,12 @@
 import sys
-import imp
 import json
 import importlib
+import importlib.util
 import copy
 import logging
 import warnings
+from types import ModuleType
 from os.path import join, exists, realpath
-
-from six import add_metaclass
 
 from .errors import ConfigurationError
 
@@ -74,23 +73,27 @@ class JsonLoader(object):
         self.filename = filename
         self.path_entry = path_entry
 
+    def create_module(self, spec):
+        return None
+
+    def exec_module(self, module):
+        fullname = module.__name__
+        logger.info("config module %s loaded from %s" % (fullname, self.filename))
+        module.__file__ = self.filename
+        module.__loader__ = self
+        module.__package__, _ = fullname.rsplit(".", 1)
+
+        with open(self.filename) as jsonfile:
+            json_data = json.load(jsonfile)
+            module.__dict__.update(json_data)
+
     def load_module(self, fullname):
         if fullname in sys.modules:
             mod = sys.modules[fullname]
         else:
-            mod = sys.modules.setdefault(fullname, imp.new_module(fullname))
+            mod = sys.modules.setdefault(fullname, ModuleType(fullname))
 
-        logger.info("config module %s loaded from %s" % (fullname, self.filename))
-        # Set a few properties required by PEP 302
-        mod.__file__ = self.filename
-        mod.__name__ = fullname
-        mod.__loader__ = self
-        mod.__package__, _ = fullname.rsplit(".", 1)
-
-        with open(self.filename) as jsonfile:
-            json_data = json.load(jsonfile)
-            mod.__dict__.update(json_data)
-
+        self.exec_module(mod)
         return mod
 
 
@@ -118,4 +121,8 @@ class JsonConfigType(type):
         return type.__new__(cls, name, bases, attrs)
 
 
-configfile = add_metaclass(JsonConfigType)
+def configfile(cls):
+    attrs = dict(cls.__dict__)
+    attrs.pop("__dict__", None)
+    attrs.pop("__weakref__", None)
+    return JsonConfigType(cls.__name__, cls.__bases__, attrs)

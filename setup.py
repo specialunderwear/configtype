@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 
-__version__ = "0.0.8"
+__version__ = "0.0.9"
 
 
 setup(
@@ -27,10 +27,5 @@ setup(
     # specify dependencies
     install_requires=[
         'setuptools',
-        'six',
     ],
-    # mark test target to require extras.
-    extras_require = {
-        'test':  ["nose"]
-    },
 )

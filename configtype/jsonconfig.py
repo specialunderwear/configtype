@@ -1,13 +1,11 @@
 import sys
-import imp
+import types
 import json
 import importlib
 import copy
 import logging
 import warnings
 from os.path import join, exists, realpath
-
-from six import add_metaclass
 
 from .errors import ConfigurationError
 
@@ -78,7 +76,7 @@ class JsonLoader(object):
         if fullname in sys.modules:
             mod = sys.modules[fullname]
         else:
-            mod = sys.modules.setdefault(fullname, imp.new_module(fullname))
+            mod = sys.modules.setdefault(fullname, types.ModuleType(fullname))
 
         logger.info("config module %s loaded from %s" % (fullname, self.filename))
         # Set a few properties required by PEP 302
@@ -117,5 +115,8 @@ class JsonConfigType(type):
 
         return type.__new__(cls, name, bases, attrs)
 
-
-configfile = add_metaclass(JsonConfigType)
+def configfile(cls):
+    attrs = dict(cls.__dict__)
+    attrs.pop('__dict__', None)
+    attrs.pop('__weakref__', None)
+    return JsonConfigType(cls.__name__, cls.__bases__, attrs)
